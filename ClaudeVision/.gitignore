@@ -47,3 +47,6 @@ npm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# Personal iOS signing + Meta app credentials
+ios/Config.local.xcconfig

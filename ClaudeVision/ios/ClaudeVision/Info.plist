@@ -27,7 +27,7 @@
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>VisionClaude uses speech recognition to transcribe your voice for Claude.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>VisionClaude connects to the Claude Gateway server on your local network.</string>
+	<string>VisionClaude connects to VisionClaude running on your Mac over your local network.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_http._tcp</string>
@@ -79,9 +79,9 @@
 		<key>AppLinkURLScheme</key>
 		<string>claudevision://</string>
 		<key>MetaAppID</key>
-		<string>925481547016740</string>
+		<string>$(META_APP_ID)</string>
 		<key>ClientToken</key>
-		<string>AR|925481547016740|1308aa9551a5f26ffb9763a60110d88a</string>
+		<string>$(META_CLIENT_TOKEN)</string>
 		<key>TeamID</key>
 		<string>$(DEVELOPMENT_TEAM)</string>
 		<key>Analytics</key>

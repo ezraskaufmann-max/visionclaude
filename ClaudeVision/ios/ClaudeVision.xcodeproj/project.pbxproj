@@ -29,6 +29,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C0F1A0000000000000000001 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		04B5455D3CE56E037F92BB98 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		0730CD29BE25A17AA11DBD6B /* ClaudeConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeConfig.swift; sourceTree = "<group>"; };
 		3F3069E25AC77AD72DFEB548 /* ClaudeBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeBridge.swift; sourceTree = "<group>"; };
@@ -77,6 +78,7 @@
 		1AC8D3445CECE9610F600843 = {
 			isa = PBXGroup;
 			children = (
+				C0F1A0000000000000000001 /* Config.xcconfig */,
 				D6D2B4AD3101E6AB77E04BA6 /* ClaudeVision */,
 				A89D041F911DC9E0739EB6C0 /* Products */,
 			);
@@ -302,11 +304,11 @@
 		};
 		46CC0894771E7101D063C88B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C0F1A0000000000000000001 /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 29QYBJKC4C;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ClaudeVision/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -314,7 +316,6 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.claudevision.app;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -379,11 +380,11 @@
 		};
 		EF8DE802157F3E08DB6DFAB6 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C0F1A0000000000000000001 /* Config.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 29QYBJKC4C;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ClaudeVision/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -391,7 +392,6 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.claudevision.app;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = 1;

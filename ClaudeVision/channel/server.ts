@@ -320,9 +320,14 @@ Bun.serve({
 
     // ── Token endpoint (localhost only — so user can grab it) ────────
     if (url.pathname === '/token') {
-      const reqHost = req.headers.get('host') ?? ''
-      const isLocal = reqHost.startsWith('localhost') || reqHost.startsWith('127.0.0.1')
-      if (!isLocal) {
+      // Both checks matter: the client IP stops other devices on the Wi-Fi
+      // (the Host header alone can be forged), and the Host check stops
+      // DNS-rebinding pages in your own browser from reading the token.
+      const reqHost = (req.headers.get('host') ?? '').replace(/:\d+$/, '')
+      const peer = server.requestIP(req)?.address ?? ''
+      const loopbackPeer = peer === '127.0.0.1' || peer === '::1' || peer === '::ffff:127.0.0.1'
+      const loopbackHost = reqHost === 'localhost' || reqHost === '127.0.0.1' || reqHost === '[::1]'
+      if (!loopbackPeer || !loopbackHost) {
         return Response.json({ error: 'token only available from localhost' }, { status: 403 })
       }
       return Response.json({ token: CHANNEL_TOKEN })
@@ -330,6 +335,7 @@ Bun.serve({
 
     // ── Serve files (TTS audio, attachments) ────────────────────────────
     if (url.pathname.startsWith('/files/')) {
+      if (!checkAuth(req)) return unauthorized()
       const f = url.pathname.slice(7)
       if (f.includes('..') || f.includes('/')) return new Response('bad', { status: 400 })
       try {
@@ -345,7 +351,7 @@ Bun.serve({
     }
 
     // ── Auth-protected endpoints ────────────────────────────────────────
-    if (['/upload', '/message', '/files/'].some(p => url.pathname.startsWith(p)) && !checkAuth(req)) {
+    if (['/upload', '/message'].some(p => url.pathname.startsWith(p)) && !checkAuth(req)) {
       return unauthorized()
     }
 
@@ -404,7 +410,11 @@ Bun.serve({
         const recipient = body.phone.includes('@')
           ? body.phone.trim()  // email — use as-is
           : body.phone.replace(/[^0-9+]/g, '')  // phone — strip non-numeric
-        const msg = body.message.replace(/\\/g, '\\\\').replace(/"/g, '\\"') // escape for AppleScript
+        const asEscape = (v: string) => v.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+        if (!/^[^\s"\\]+$/.test(recipient)) {
+          return Response.json({ error: 'invalid recipient' }, { status: 400 })
+        }
+        const msg = asEscape(body.message) // escape for AppleScript
         const script = `
           tell application "Messages"
             set targetService to 1st service whose service type = iMessage
@@ -531,4 +541,6 @@ log(`   Dashboard:  http://localhost:${PORT}`)
 log(`   Enter token in iOS app → Settings → Channel Token`)
 
 // Auto-open dashboard in default browser
-Bun.spawn(['open', `http://localhost:${PORT}`], { stdout: 'ignore', stderr: 'ignore' })
+if (process.platform === 'darwin' && !process.env.VISIONCLAUDE_NO_BROWSER) {
+  Bun.spawn(['open', `http://localhost:${PORT}`], { stdout: 'ignore', stderr: 'ignore' })
+}

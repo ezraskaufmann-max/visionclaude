@@ -118,8 +118,13 @@ class ClaudeBridge: NSObject, ObservableObject, URLSessionWebSocketDelegate {
                 let replyText = json["text"] as? String ?? ""
                 let audioUrl = json["audio_url"] as? String
                 let fullAudioUrl: String?
-                if let audioPath = audioUrl {
-                    fullAudioUrl = "http://\(self.config.gatewayHost):\(self.config.gatewayPort)\(audioPath)"
+                if let audioPath = audioUrl,
+                   var comps = URLComponents(string: "http://\(self.config.gatewayHost):\(self.config.gatewayPort)\(audioPath)") {
+                    // The channel requires the token to download reply audio
+                    if !self.config.channelToken.isEmpty {
+                        comps.queryItems = (comps.queryItems ?? []) + [URLQueryItem(name: "token", value: self.config.channelToken)]
+                    }
+                    fullAudioUrl = comps.url?.absoluteString
                 } else {
                     fullAudioUrl = nil
                 }

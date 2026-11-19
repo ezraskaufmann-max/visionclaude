@@ -68,7 +68,7 @@ The interactive installer handles dependencies, API keys, and Xcode project gene
 
 ### Step 2: Start the Channel
 
-Add VisionClaude as an MCP server in your project's `.mcp.json`:
+If you run Claude Code from the root of this repo, the included `.mcp.json` already registers the channel. To use it from another project, add it to that project's `.mcp.json`:
 
 ```json
 {
@@ -231,9 +231,10 @@ Restart the gateway after changes: `lsof -ti:18790 | xargs kill -9 && npm start`
 1. Install **Meta AI** app → pair glasses via Bluetooth
 2. **Developer Mode**: Meta AI → Settings → your glasses → Developer Mode → ON
 3. Restart glasses (hold button 15s to power off, press to power on)
-4. Register at [developers.meta.com](https://developers.meta.com): Create app → Wearables → iOS config (Team ID + Bundle ID `com.claudevision.app`) → create version → assign to release channel
-5. In VisionClaude: Settings → **Connect Glasses via Meta AI** → Approve
-6. Switch camera source to **Meta Ray-Ban**
+4. Register **your own** app at [developers.meta.com](https://developers.meta.com): Create app → Wearables → iOS config (your Apple Team ID + your own Bundle ID, e.g. `com.yourname.visionclaude`) → create version → assign to release channel
+5. Put your Team ID, Bundle ID, Meta App ID and Client Token in `ClaudeVision/ios/Config.local.xcconfig` (`./setup.sh` asks for them and writes this file; it is git-ignored — see `Config.local.xcconfig.example`). Rebuild the app in Xcode.
+6. In VisionClaude: Settings → **Connect Glasses via Meta AI** → Approve
+7. Switch camera source to **Meta Ray-Ban**
 
 The DAT SDK is included via SPM from [facebook/meta-wearables-dat-ios](https://github.com/facebook/meta-wearables-dat-ios).
 

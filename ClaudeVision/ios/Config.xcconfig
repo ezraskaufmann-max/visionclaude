@@ -1,0 +1,21 @@
+// VisionClaude build configuration.
+//
+// Do NOT put your own values in this file. Instead create
+// Config.local.xcconfig next to it (copy Config.local.xcconfig.example),
+// which is git-ignored. ../setup.sh can write it for you.
+//
+// These values must match the app you registered at developers.meta.com
+// (Wearables → iOS configuration), or the Meta AI app will refuse to
+// connect your glasses to VisionClaude.
+
+// Apple Developer Team ID (Xcode → Settings → Accounts, or developer.apple.com → Membership)
+DEVELOPMENT_TEAM =
+
+// Must be unique to you — e.g. com.yourname.visionclaude
+PRODUCT_BUNDLE_IDENTIFIER = com.example.visionclaude
+
+// From developers.meta.com → your Wearables app → App ID / Client Token
+META_APP_ID =
+META_CLIENT_TOKEN =
+
+#include? "Config.local.xcconfig"

@@ -70,8 +70,11 @@ jobs:
       - name: Check secrets
         run: |
           missing=0
-          for v in APPLE_TEAM_ID BUNDLE_ID META_APP_ID META_CLIENT_TOKEN ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8; do
+          for v in APPLE_TEAM_ID BUNDLE_ID ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8; do
             if [ -z "${!v}" ]; then echo "::error::Missing repository secret $v (see docs/BUILD-WITHOUT-A-MAC.md)"; missing=1; fi
+          done
+          for v in META_APP_ID META_CLIENT_TOKEN; do
+            if [ -z "${!v}" ]; then echo "::warning::$v not set — glasses will only connect while Developer Mode is on in the Meta AI app"; fi
           done
           exit $missing
       - name: Tools

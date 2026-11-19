@@ -41,6 +41,8 @@ iPhone/Glasses  ──→  Channel Plugin  ──→  Claude Code (Opus)
 
 ## Quick Start (5 minutes)
 
+> **No Mac?** You can build the iPhone app on GitHub and install it with TestFlight, and run the Claude side on Windows or Linux. See **[docs/BUILD-WITHOUT-A-MAC.md](docs/BUILD-WITHOUT-A-MAC.md)**.
+
 ### What You Need
 
 | Requirement | How to Get It |

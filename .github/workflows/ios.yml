@@ -1,0 +1,134 @@
+# Builds the VisionClaude iOS app on GitHub's Mac machines — no Mac needed.
+#
+#  • "compile check" runs on every push: builds without signing, so you can
+#    see whether the code compiles.
+#  • "TestFlight" runs when you start it by hand (Actions tab → iOS → Run
+#    workflow → upload_to_testflight). It signs the app with your Apple
+#    account and uploads it to TestFlight, so you can install it on your
+#    iPhone from the TestFlight app. It needs the repository secrets listed
+#    in docs/BUILD-WITHOUT-A-MAC.md.
+name: iOS
+
+on:
+  push:
+    paths: ["ClaudeVision/ios/**", ".github/workflows/ios.yml"]
+  pull_request:
+    paths: ["ClaudeVision/ios/**", ".github/workflows/ios.yml"]
+  workflow_dispatch:
+    inputs:
+      upload_to_testflight:
+        description: "Sign and upload to TestFlight"
+        type: boolean
+        default: true
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: ClaudeVision/ios
+
+jobs:
+  compile:
+    name: compile check
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: |
+          xcodebuild -version
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          command -v xcbeautify >/dev/null || brew install xcbeautify
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Build (unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project ClaudeVision.xcodeproj -scheme ClaudeVision \
+            -destination 'generic/platform=iOS' -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            | xcbeautify --renderer github-actions
+
+  testflight:
+    name: TestFlight
+    if: github.event_name == 'workflow_dispatch' && inputs.upload_to_testflight
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
+      META_APP_ID: ${{ secrets.META_APP_ID }}
+      META_CLIENT_TOKEN: ${{ secrets.META_CLIENT_TOKEN }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check secrets
+        run: |
+          missing=0
+          for v in APPLE_TEAM_ID BUNDLE_ID META_APP_ID META_CLIENT_TOKEN ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8; do
+            if [ -z "${!v}" ]; then echo "::error::Missing repository secret $v (see docs/BUILD-WITHOUT-A-MAC.md)"; missing=1; fi
+          done
+          exit $missing
+      - name: Tools
+        run: |
+          xcodebuild -version
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          command -v xcbeautify >/dev/null || brew install xcbeautify
+      - name: Write config and API key
+        run: |
+          cat > Config.local.xcconfig <<XC
+          DEVELOPMENT_TEAM = $APPLE_TEAM_ID
+          PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID
+          META_APP_ID = $META_APP_ID
+          META_CLIENT_TOKEN = $META_CLIENT_TOKEN
+          XC
+          mkdir -p "$RUNNER_TEMP/keys"
+          printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/keys/AuthKey.p8"
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PL
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          PL
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Archive (signed)
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project ClaudeVision.xcodeproj -scheme ClaudeVision \
+            -destination 'generic/platform=iOS' -configuration Release \
+            -archivePath "$RUNNER_TEMP/VisionClaude.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            | xcbeautify --renderer github-actions
+      - name: Upload to TestFlight
+        run: |
+          set -o pipefail
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/VisionClaude.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            | xcbeautify --renderer github-actions
+          echo "::notice::Uploaded build ${{ github.run_number }}. It appears in TestFlight after Apple finishes processing (usually 5–30 min)."
+      - name: Remove key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
